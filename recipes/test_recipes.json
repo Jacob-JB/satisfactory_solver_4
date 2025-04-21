@@ -1,0 +1,20 @@
+{
+  "recipes": [
+    {
+      "name": "Iron Ingot",
+      "rates": [
+        ["Mega Joule", -240],
+        ["Iron Ore", -30],
+        ["Iron Ingot", 30]
+      ]
+    },
+    {
+      "name": "Iron Plate",
+      "rates": [
+        ["Mega Joule", -120],
+        ["Iron Ingot", -30],
+        ["Iron Plate", 20]
+      ]
+    }
+  ]
+}
