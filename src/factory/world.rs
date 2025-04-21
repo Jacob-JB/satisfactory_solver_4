@@ -15,6 +15,7 @@ pub struct ResourceId(u32);
 pub struct RecipeId(u32);
 
 pub struct Recipe {
+    pub name: String,
     pub ratios: Vec<(ResourceId, f32)>,
 }
 

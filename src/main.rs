@@ -12,27 +12,58 @@ fn main() {
     drag_plane::build(&mut app);
 
     app.insert_resource(ClearColor(Color::BLACK));
-    app.add_systems(Startup, setup);
+    app.add_systems(Startup, create_ui);
 
     app.run();
 }
 
-fn setup(mut commands: Commands) {
+#[derive(Resource)]
+pub struct ControlPanelUi {
+    pub control_panel_entity: Entity,
+}
+
+fn create_ui(mut commands: Commands) {
     commands.spawn(Camera2d::default());
+
+    let root_ui_entity = commands
+        .spawn(Node {
+            width: Val::Percent(100.),
+            height: Val::Percent(100.),
+            flex_direction: FlexDirection::Row,
+            ..default()
+        })
+        .id();
+
+    let control_panel_entity = commands
+        .spawn((
+            Node {
+                width: Val::Percent(20.),
+                height: Val::Percent(100.),
+                overflow: Overflow::scroll_y(),
+                ..default()
+            },
+            FocusPolicy::Block,
+        ))
+        .set_parent(root_ui_entity)
+        .id();
+
+    commands.insert_resource(ControlPanelUi {
+        control_panel_entity,
+    });
 
     let root_plane_entity = commands
         .spawn((
             drag_plane::DragBoxPlane,
             Node {
-                width: Val::Percent(80.),
-                height: Val::Percent(80.),
-                left: Val::Percent(10.),
-                top: Val::Percent(10.),
+                height: Val::Percent(100.),
+                flex_grow: 1.,
                 overflow: Overflow::clip(),
                 ..default()
             },
+            FocusPolicy::Block,
             BackgroundColor(Srgba::rgb(0.1, 0.1, 0.1).into()),
         ))
+        .set_parent(root_ui_entity)
         .id();
 
     let box_a = commands.spawn_empty().set_parent(root_plane_entity).id();
