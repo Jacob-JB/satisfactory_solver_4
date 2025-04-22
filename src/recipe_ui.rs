@@ -21,6 +21,7 @@ pub fn build(app: &mut App) {
             finish_load_recipes_dialogue,
             remove_recipe_ui,
             insert_recipe_ui,
+            despawn_recipes,
         ),
     );
 }
@@ -45,6 +46,12 @@ struct RemoveRecipeButton {
 #[require(Button)]
 struct InsertRecipeButton {
     recipe_id: RecipeId,
+}
+
+#[derive(Component)]
+#[require(Button)]
+struct DespawnRecipeButton {
+    box_entity: Entity,
 }
 
 fn create_recipe_ui(
@@ -168,9 +175,7 @@ fn finish_load_recipes_dialogue(
                             Text::new("X"),
                         ));
 
-                        builder.spawn((InsertRecipeButton { recipe_id }, Text::new(">")));
-
-                        builder.spawn(Text::new(&recipe.name));
+                        builder.spawn((InsertRecipeButton { recipe_id }, Text::new(&recipe.name)));
                     })
                     .set_parent(recipe_list.recipe_list_entity);
             }
@@ -226,6 +231,8 @@ fn insert_recipe_ui(
             ))
             .set_parent(root_plane_entity)
             .with_children(|builder| {
+                let box_entity = builder.parent_entity();
+
                 builder
                     .spawn(Node {
                         flex_direction: FlexDirection::Column,
@@ -254,7 +261,7 @@ fn insert_recipe_ui(
                                     BackgroundColor(RED.into()),
                                 ));
 
-                                builder.spawn((Button, Text::new("X")));
+                                builder.spawn((DespawnRecipeButton { box_entity }, Text::new("X")));
                             });
 
                         // content
@@ -292,5 +299,18 @@ fn insert_recipe_ui(
                             });
                     });
             });
+    }
+}
+
+fn despawn_recipes(
+    mut commands: Commands,
+    button_q: Query<(&DespawnRecipeButton, &Interaction), Changed<Interaction>>,
+) {
+    for (button, interaction) in button_q.iter() {
+        let Interaction::Pressed = interaction else {
+            continue;
+        };
+
+        commands.entity(button.box_entity).despawn_recursive();
     }
 }
