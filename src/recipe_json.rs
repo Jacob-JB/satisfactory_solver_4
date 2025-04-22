@@ -1,6 +1,6 @@
 use serde::Deserialize;
 
-use super::world::*;
+use crate::factory_world::*;
 
 #[derive(Deserialize)]
 pub struct RecipeListJson<'a> {
@@ -14,20 +14,11 @@ pub struct RecipeJson<'a> {
     pub rates: Vec<(&'a str, f32)>,
 }
 
-#[derive(Debug)]
-pub enum OpenRecipesError {
-    Io(std::io::Error),
-    Json(serde_json::Error),
-}
-
-pub fn load_recipes(
-    world: &mut World,
-    path: impl AsRef<std::path::Path>,
-) -> Result<Vec<RecipeId>, OpenRecipesError> {
-    let json = std::fs::read_to_string(path).map_err(|e| OpenRecipesError::Io(e))?;
-
-    let parsed_json: RecipeListJson =
-        serde_json::from_str(&json).map_err(|e| OpenRecipesError::Json(e))?;
+pub fn load_recipes<'json>(
+    world: &mut FactoryWorld,
+    json: &'json str,
+) -> Result<Vec<Result<RecipeId, &'json str>>, serde_json::Error> {
+    let parsed_json: RecipeListJson = serde_json::from_str(json)?;
 
     Ok(parsed_json
         .recipes
@@ -44,7 +35,10 @@ pub fn load_recipes(
                     .collect(),
             };
 
-            world.insert_recipe(recipe)
+            match world.insert_recipe(recipe) {
+                Some(id) => Ok(id),
+                None => Err(name),
+            }
         })
         .collect())
 }

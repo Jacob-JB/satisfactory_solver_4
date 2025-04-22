@@ -1,6 +1,5 @@
 use bevy::{
-    color::palettes::css::*, input::mouse::AccumulatedMouseScroll, prelude::*, ui::FocusPolicy,
-    window::PrimaryWindow,
+    input::mouse::AccumulatedMouseScroll, prelude::*, ui::FocusPolicy, window::PrimaryWindow,
 };
 
 pub fn build(app: &mut App) {
@@ -19,48 +18,6 @@ pub fn build(app: &mut App) {
     );
 }
 
-pub fn create_drag_box(commands: &mut Commands, drag_box_entity: Entity) -> Entity {
-    commands.entity(drag_box_entity).insert((
-        DragBox {
-            position: default(),
-        },
-        FocusPolicy::Block,
-        Node {
-            position_type: PositionType::Absolute,
-            ..default()
-        },
-    ));
-
-    let mut child_ui_root = Entity::PLACEHOLDER;
-
-    commands
-        .spawn(Node {
-            flex_direction: FlexDirection::Column,
-            align_items: AlignItems::Center,
-            ..default()
-        })
-        .set_parent(drag_box_entity)
-        .with_children(|builder| {
-            builder.spawn((
-                Text::new("Header"),
-                TextLayout {
-                    justify: JustifyText::Center,
-                    ..default()
-                },
-                Node {
-                    width: Val::Percent(100.),
-                    ..default()
-                },
-                BackgroundColor(RED.into()),
-                BorderRadius::top(Val::Px(5.)),
-            ));
-
-            child_ui_root = builder.spawn((Node::default(), FocusPolicy::Block)).id();
-        });
-
-    child_ui_root
-}
-
 #[derive(Resource)]
 pub struct PlaneScroll {
     pub scroll_position: Vec2,
@@ -71,9 +28,9 @@ pub struct PlaneScroll {
 pub struct DragBoxPlane;
 
 #[derive(Component)]
-#[require(Node, Interaction)]
+#[require(Node, Interaction, FocusPolicy(|| FocusPolicy::Block))]
 pub struct DragBox {
-    position: Vec2,
+    pub position: Vec2,
 }
 
 struct CurrentBoxDrag {
@@ -132,6 +89,7 @@ fn update_drag_box_positions(
     plane_scroll: Res<PlaneScroll>,
 ) {
     for (drag_box, mut node) in drag_box_q.iter_mut() {
+        node.position_type = PositionType::Absolute;
         node.left = Val::Px(drag_box.position.x + plane_scroll.scroll_position.x);
         node.top = Val::Px(drag_box.position.y + plane_scroll.scroll_position.y);
     }
